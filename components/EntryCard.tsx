@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import StarRating from './StarRating'
+import EntryModal from './EntryModal'
 import type { Entry } from '@/lib/supabase'
 
 const POSTER_COLORS = [
@@ -31,6 +32,7 @@ interface Props {
 
 export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
   const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
 
   async function toggleWatched() {
     setLoading(true)
@@ -66,7 +68,8 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
   const initials = getInitials(entry.title)
 
   return (
-    <div className="group relative rounded-xl overflow-hidden border border-white/8 bg-[var(--color-surface)] hover:border-white/20 transition-all">
+    <>
+    <div className="group relative rounded-xl overflow-hidden border border-white/8 bg-[var(--color-surface)] hover:border-white/20 transition-all cursor-pointer" onClick={() => setShowModal(true)}>
       <div className={`h-36 bg-gradient-to-br ${posterColor} flex items-center justify-center overflow-hidden`}>
         {entry.poster_url ? (
           <img src={entry.poster_url} alt={entry.title} className="w-full h-full object-cover" />
@@ -76,7 +79,7 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
       </div>
 
       <button
-        onClick={handleDelete}
+        onClick={e => { e.stopPropagation(); handleDelete() }}
         className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white/50 hover:text-red-400 hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 text-xs flex items-center justify-center"
         aria-label="Supprimer"
       >
@@ -87,7 +90,7 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
         <p className="font-medium text-sm text-white truncate leading-tight">{entry.title}</p>
         {entry.year && <p className="text-xs text-white/40 mt-0.5">{entry.year}</p>}
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-2" onClick={e => e.stopPropagation()}>
           <button
             onClick={toggleWatched}
             disabled={loading}
@@ -103,10 +106,19 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
           <span className="text-xs text-white/50">{entry.watched ? 'Vu' : 'À voir'}</span>
         </div>
 
-        <div className={`mt-2 transition-opacity ${entry.watched ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+        <div className={`mt-2 transition-opacity ${entry.watched ? 'opacity-100' : 'opacity-30 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
           <StarRating value={entry.rating} onChange={setRating} readonly={!entry.watched} />
         </div>
       </div>
     </div>
+
+    {showModal && (
+      <EntryModal
+        entry={entry}
+        onUpdate={updated => { onUpdate(updated); setShowModal(false) }}
+        onClose={() => setShowModal(false)}
+      />
+    )}
+    </>
   )
 }

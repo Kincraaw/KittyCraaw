@@ -12,6 +12,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const updates: Record<string, unknown> = {}
   if ('watched' in body) updates.watched = body.watched
   if ('rating' in body) updates.rating = body.rating
+  if ('note' in body) updates.note = body.note
 
   const supabase = getSupabase()
   const { data, error } = await supabase

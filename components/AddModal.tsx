@@ -21,6 +21,7 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
   const [results, setResults] = useState<TmdbResult[]>([])
   const [searching, setSearching] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [addError, setAddError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -43,6 +44,7 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
   }
 
   async function handleSelect(result: TmdbResult) {
+    setAddError('')
     setAdding(true)
     const res = await fetch('/api/entries', {
       method: 'POST',
@@ -56,14 +58,16 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
       }),
     })
     const data = await res.json()
-    onAdd(data)
     setAdding(false)
+    if (!res.ok) { setAddError(data.error); return }
+    onAdd(data)
     onClose()
   }
 
   async function handleManual(e: React.FormEvent) {
     e.preventDefault()
     if (!query.trim()) return
+    setAddError('')
     setAdding(true)
     const res = await fetch('/api/entries', {
       method: 'POST',
@@ -71,8 +75,9 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
       body: JSON.stringify({ title: query.trim(), type }),
     })
     const data = await res.json()
-    onAdd(data)
     setAdding(false)
+    if (!res.ok) { setAddError(data.error); return }
+    onAdd(data)
     onClose()
   }
 
@@ -82,7 +87,7 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
       style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[var(--color-surface-2)] shadow-2xl overflow-hidden">
+      <div className="w-full max-w-xl rounded-2xl border border-white/10 bg-[var(--color-surface-2)] shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-white/8">
           <h2 className="text-base font-semibold mb-3">
             Ajouter {type === 'film' ? 'un film' : 'une série'}
@@ -96,7 +101,7 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
           />
         </div>
 
-        <div className="max-h-80 overflow-y-auto">
+        <div className="max-h-96 overflow-y-auto">
           {searching && (
             <div className="py-6 text-center text-white/40 text-sm">Recherche…</div>
           )}
@@ -110,7 +115,7 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
                     disabled={adding}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left disabled:opacity-50"
                   >
-                    <div className="w-10 h-14 rounded-md overflow-hidden shrink-0 bg-white/5 border border-white/10">
+                    <div className="w-14 h-20 rounded-md overflow-hidden shrink-0 bg-white/5 border border-white/10">
                       {r.poster_url ? (
                         <img src={r.poster_url} alt={r.title} className="w-full h-full object-cover" />
                       ) : (
@@ -146,6 +151,12 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
             </div>
           )}
         </div>
+
+        {addError && (
+          <div className="px-4 py-2 bg-red-500/10 border-t border-red-500/20 text-red-400 text-sm text-center">
+            {addError}
+          </div>
+        )}
 
         <div className="p-4 border-t border-white/8">
           <button onClick={onClose} className="w-full text-sm text-white/40 hover:text-white/70 transition-colors">

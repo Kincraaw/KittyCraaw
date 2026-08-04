@@ -19,5 +19,6 @@ export interface Entry {
   rating: number | null
   poster_url: string | null
   tmdb_id: number | null
+  note: string | null
   created_at: string
 }

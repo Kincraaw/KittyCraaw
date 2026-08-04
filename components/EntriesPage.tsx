@@ -63,9 +63,9 @@ export default function EntriesPage({ type }: { type: EntryType }) {
     <>
       <Navbar />
 
-      <main className="mx-auto max-w-5xl px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold capitalize">{type === 'film' ? '🎬 Films' : '📺 Séries'}</h1>
+      <main className="mx-auto max-w-5xl px-4 py-6">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-lg font-semibold">{type === 'film' ? '🎬 Films' : '📺 Séries'}</h1>
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 transition-colors"
@@ -74,7 +74,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-3 gap-2 mb-5">
           <div className="rounded-xl bg-[var(--color-surface)] border border-white/8 p-4">
             <div className="text-2xl font-semibold">{watchedCount}</div>
             <div className="text-xs text-white/50 mt-0.5">{label.charAt(0).toUpperCase() + label.slice(1)} vus</div>
@@ -89,12 +89,12 @@ export default function EntriesPage({ type }: { type: EntryType }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-5">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={`Rechercher…`}
-            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-violet-500 transition-colors flex-1 max-w-xs"
+            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-violet-500 transition-colors flex-1"
           />
           <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
             {(['all', 'watched', 'unwatched'] as Filter[]).map(f => (
@@ -131,7 +131,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filtered.map(entry => (
               <EntryCard
                 key={entry.id}
