@@ -17,5 +17,7 @@ export interface Entry {
   year: number | null
   watched: boolean
   rating: number | null
+  poster_url: string | null
+  tmdb_id: number | null
   created_at: string
 }

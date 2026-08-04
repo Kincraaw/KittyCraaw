@@ -67,8 +67,12 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
 
   return (
     <div className="group relative rounded-xl overflow-hidden border border-white/8 bg-[var(--color-surface)] hover:border-white/20 transition-all">
-      <div className={`h-28 bg-gradient-to-br ${posterColor} flex items-center justify-center`}>
-        <span className="text-2xl font-bold text-white/30 tracking-wider">{initials}</span>
+      <div className={`h-36 bg-gradient-to-br ${posterColor} flex items-center justify-center overflow-hidden`}>
+        {entry.poster_url ? (
+          <img src={entry.poster_url} alt={entry.title} className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-2xl font-bold text-white/30 tracking-wider">{initials}</span>
+        )}
       </div>
 
       <button

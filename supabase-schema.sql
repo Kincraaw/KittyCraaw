@@ -8,6 +8,8 @@ CREATE TABLE entries (
   year INTEGER,
   watched BOOLEAN DEFAULT FALSE NOT NULL,
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  poster_url TEXT,
+  tmdb_id INTEGER,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
