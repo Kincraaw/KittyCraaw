@@ -14,11 +14,11 @@ export default function Navbar() {
   const themeLabel = theme === 'bordeaux' ? 'Thème image' : 'Thème bordeaux'
 
   const tabs = [
-    { href: '/films', label: 'Films', icon: '🎬' },
+    { href: '/films', label: 'Films', icon: '🍿' },
     { href: '/series', label: 'Séries', icon: '📺' },
-    { href: '/duo', label: 'Duo', icon: '🎭' },
+    { href: '/duo', label: 'Partagé', icon: '🤝' },
     { href: '/stats', label: 'Stats', icon: '📊' },
-    { href: '/membres', label: 'Membres', icon: '👥' },
+    { href: '/membres', label: 'Membres', icon: '🧑‍🤝‍🧑' },
   ]
 
   return (
@@ -47,9 +47,22 @@ export default function Navbar() {
             <button
               onClick={toggle}
               title={themeLabel}
-              className="text-base hover:scale-110 transition-transform"
+              className="relative w-14 h-7 rounded-full border border-white/15 transition-colors duration-300 shrink-0"
+              style={{ background: theme === 'image' ? 'rgba(192,57,43,0.25)' : 'rgba(255,255,255,0.06)' }}
             >
-              {themeIcon}
+              {/* Track icons */}
+              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-sm leading-none select-none">🌙</span>
+              <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-sm leading-none select-none">☀️</span>
+              {/* Sliding pill */}
+              <span
+                className="absolute top-0.5 w-6 h-6 rounded-full shadow-md flex items-center justify-center text-sm transition-all duration-300"
+                style={{
+                  left: theme === 'image' ? 'calc(100% - 1.75rem)' : '0.125rem',
+                  background: theme === 'image' ? '#c0392b' : '#2b1019',
+                }}
+              >
+                {theme === 'image' ? '☀️' : '🌙'}
+              </span>
             </button>
             {session?.user && (
               <button
