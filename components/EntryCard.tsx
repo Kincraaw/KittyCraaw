@@ -89,6 +89,9 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
       </button>
 
       <div className="p-3">
+        {entry.suggested_by && (
+          <p className="text-xs text-amber-400/80 mb-1">💌 {entry.suggested_by}</p>
+        )}
         <p className="font-medium text-sm text-white truncate leading-tight">{entry.title}</p>
         {entry.year && <p className="text-xs text-white/40 mt-0.5">{entry.year}</p>}
 

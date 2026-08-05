@@ -21,6 +21,8 @@ export default function EntryModal({ entry, onUpdate, onClose }: Props) {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [memberNotes, setMemberNotes] = useState<MemberNote[]>([])
+  const [suggesting, setSuggesting] = useState(false)
+  const [suggestMsg, setSuggestMsg] = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
     const param = entry.tmdb_id
@@ -30,6 +32,23 @@ export default function EntryModal({ entry, onUpdate, onClose }: Props) {
       .then(r => r.json())
       .then(setMemberNotes)
   }, [entry.tmdb_id, entry.title])
+
+  async function suggest() {
+    setSuggesting(true)
+    setSuggestMsg(null)
+    const res = await fetch('/api/suggest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry_id: entry.id }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setSuggestMsg({ ok: true, text: `✓ Suggéré à ${data.to} !` })
+    } else {
+      setSuggestMsg({ ok: false, text: data.error })
+    }
+    setSuggesting(false)
+  }
 
   async function saveNote() {
     setSaving(true)
@@ -75,7 +94,21 @@ export default function EntryModal({ entry, onUpdate, onClose }: Props) {
               </span>
             </div>
           </div>
-          <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors self-start text-lg leading-none">✕</button>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors text-lg leading-none">✕</button>
+            <button
+              onClick={suggest}
+              disabled={suggesting}
+              className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs text-white/60 hover:text-white hover:bg-white/10 transition-all disabled:opacity-40 whitespace-nowrap"
+            >
+              {suggesting ? '…' : '💌 Suggérer'}
+            </button>
+            {suggestMsg && (
+              <span className={`text-xs ${suggestMsg.ok ? 'text-green-400' : 'text-red-400'}`}>
+                {suggestMsg.text}
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="p-5 border-b border-white/8">

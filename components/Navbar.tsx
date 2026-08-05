@@ -17,6 +17,7 @@ export default function Navbar() {
     { href: '/films', label: 'Films', icon: '🎬' },
     { href: '/series', label: 'Séries', icon: '📺' },
     { href: '/duo', label: 'Duo', icon: '🎭' },
+    { href: '/stats', label: 'Stats', icon: '📊' },
     { href: '/membres', label: 'Membres', icon: '👥' },
   ]
 

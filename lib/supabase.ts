@@ -22,5 +22,6 @@ export interface Entry {
   poster_url: string | null
   tmdb_id: number | null
   note: string | null
+  suggested_by: string | null
   created_at: string
 }
