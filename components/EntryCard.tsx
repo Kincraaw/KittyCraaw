@@ -60,6 +60,18 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
     onUpdate(data)
   }
 
+  async function toggleLock() {
+    setLoading(true)
+    const res = await fetch(`/api/entries/${entry.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ locked: !entry.locked }),
+    })
+    const data = await res.json()
+    onUpdate(data)
+    setLoading(false)
+  }
+
   async function handleDelete() {
     if (!confirm(`Supprimer "${entry.title}" ?`)) return
     await fetch(`/api/entries/${entry.id}`, { method: 'DELETE' })
@@ -80,13 +92,26 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
         )}
       </div>
 
-      <button
-        onClick={e => { e.stopPropagation(); handleDelete() }}
-        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 text-white/50 hover:text-red-400 hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 text-xs flex items-center justify-center"
-        aria-label="Supprimer"
-      >
-        ✕
-      </button>
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+        {(entry.status ?? (entry.watched ? 'watched' : 'unwatched')) === 'watched' && (
+          <button
+            onClick={e => { e.stopPropagation(); toggleLock() }}
+            className="w-6 h-6 rounded-full bg-black/60 hover:bg-black/80 transition-all text-xs flex items-center justify-center"
+            aria-label={entry.locked ? 'Déverrouiller' : 'Verrouiller'}
+          >
+            {entry.locked ? '🔒' : '🔓'}
+          </button>
+        )}
+        {!entry.locked && (
+          <button
+            onClick={e => { e.stopPropagation(); handleDelete() }}
+            className="w-6 h-6 rounded-full bg-black/60 text-white/50 hover:text-red-400 hover:bg-black/80 transition-all text-xs flex items-center justify-center"
+            aria-label="Supprimer"
+          >
+            ✕
+          </button>
+        )}
+      </div>
 
       <div className="p-3">
         {entry.suggested_by && (
@@ -106,8 +131,8 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
             return (
               <button
                 onClick={cycleStatus}
-                disabled={loading}
-                className={`w-full rounded px-2 py-1 text-xs font-medium transition-all ${cfg.cls}`}
+                disabled={loading || entry.locked}
+                className={`w-full rounded px-2 py-1 text-xs font-medium transition-all ${entry.locked ? 'opacity-50 cursor-not-allowed ' : ''}${cfg.cls}`}
               >
                 {cfg.label}
               </button>
@@ -116,7 +141,7 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
         </div>
 
         <div className={`mt-2 transition-opacity ${(entry.status ?? (entry.watched ? 'watched' : 'unwatched')) === 'watched' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
-          <StarRating value={entry.rating} onChange={setRating} readonly={!entry.watched} />
+          <StarRating value={entry.rating} onChange={setRating} readonly={!entry.watched || entry.locked} />
         </div>
       </div>
     </div>

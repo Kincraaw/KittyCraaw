@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.email) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { title, year, type, poster_url, tmdb_id } = body
+  const { title, year, type, poster_url, tmdb_id, genres } = body
   if (!title || !type) return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
 
   const supabase = getSupabase()
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('entries')
-    .insert({ user_email: session.user.email, title, year: year || null, type, watched: false, rating: null, poster_url: poster_url || null, tmdb_id: tmdb_id || null })
+    .insert({ user_email: session.user.email, title, year: year || null, type, watched: false, rating: null, poster_url: poster_url || null, tmdb_id: tmdb_id || null, genres: genres ?? [] })
     .select()
     .single()
 

@@ -14,6 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if ('status' in body) updates.status = body.status
   if ('rating' in body) updates.rating = body.rating
   if ('note' in body) updates.note = body.note
+  if ('locked' in body) updates.locked = body.locked
 
   const supabase = getSupabase()
   const { data, error } = await supabase

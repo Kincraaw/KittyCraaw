@@ -20,6 +20,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<Sort>('date')
+  const [genre, setGenre] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -39,12 +40,15 @@ export default function EntriesPage({ type }: { type: EntryType }) {
   function handleUpdate(updated: Entry) { setEntries(prev => prev.map(e => e.id === updated.id ? updated : e)) }
   function handleDelete(id: string) { setEntries(prev => prev.filter(e => e.id !== id)) }
 
+  const allGenres = Array.from(new Set(entries.flatMap(e => e.genres ?? []))).sort()
+
   const filtered = entries
     .filter(e => {
       const matchSearch = e.title.toLowerCase().includes(search.toLowerCase())
       const status = e.status ?? (e.watched ? 'watched' : 'unwatched')
       const matchFilter = filter === 'all' || status === filter
-      return matchSearch && matchFilter
+      const matchGenre = !genre || (e.genres ?? []).includes(genre)
+      return matchSearch && matchFilter && matchGenre
     })
     .sort((a, b) => {
       if (sort === 'title') return a.title.localeCompare(b.title)
@@ -99,6 +103,26 @@ export default function EntriesPage({ type }: { type: EntryType }) {
             <div className="text-xs text-white/50 mt-0.5">{watchingCount > 0 ? 'En cours' : 'À voir'}</div>
           </div>
         </div>
+
+        {allGenres.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap mb-3">
+            <button
+              onClick={() => setGenre(null)}
+              className={`rounded-full px-3 py-1 text-xs transition-colors ${!genre ? 'bg-violet-600 text-white' : 'bg-white/5 text-white/50 hover:text-white border border-white/10'}`}
+            >
+              Tous
+            </button>
+            {allGenres.map(g => (
+              <button
+                key={g}
+                onClick={() => setGenre(genre === g ? null : g)}
+                className={`rounded-full px-3 py-1 text-xs transition-colors ${genre === g ? 'bg-violet-600 text-white' : 'bg-white/5 text-white/50 hover:text-white border border-white/10'}`}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mb-5">
           <input

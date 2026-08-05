@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#1c0a10"/>
+  <!-- Oreilles -->
+  <polygon points="100,200 140,80 220,180" fill="#c0392b"/>
+  <polygon points="412,200 372,80 292,180" fill="#c0392b"/>
+  <!-- Oreilles intérieures -->
+  <polygon points="112,192 142,100 210,178" fill="#a93226"/>
+  <polygon points="400,192 370,100 302,178" fill="#a93226"/>
+  <!-- Tête -->
+  <ellipse cx="256" cy="290" rx="160" ry="148" fill="#2b1019"/>
+  <!-- Yeux -->
+  <ellipse cx="196" cy="260" rx="28" ry="32" fill="#f5e6e8"/>
+  <ellipse cx="316" cy="260" rx="28" ry="32" fill="#f5e6e8"/>
+  <ellipse cx="196" cy="262" rx="14" ry="20" fill="#1c0a10"/>
+  <ellipse cx="316" cy="262" rx="14" ry="20" fill="#1c0a10"/>
+  <!-- Reflets yeux -->
+  <circle cx="202" cy="252" r="5" fill="white"/>
+  <circle cx="322" cy="252" r="5" fill="white"/>
+  <!-- Nez -->
+  <ellipse cx="256" cy="308" rx="14" ry="10" fill="#c0392b"/>
+  <!-- Bouche -->
+  <path d="M242,318 Q256,334 270,318" stroke="#a07880" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Moustaches gauche -->
+  <line x1="100" y1="300" x2="230" y2="310" stroke="#a07880" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="100" y1="318" x2="230" y2="316" stroke="#a07880" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="108" y1="336" x2="230" y2="324" stroke="#a07880" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Moustaches droite -->
+  <line x1="412" y1="300" x2="282" y2="310" stroke="#a07880" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="412" y1="318" x2="282" y2="316" stroke="#a07880" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="404" y1="336" x2="282" y2="324" stroke="#a07880" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

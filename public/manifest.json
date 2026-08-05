@@ -1,0 +1,18 @@
+{
+  "name": "KittyCraaw",
+  "short_name": "KittyCraaw",
+  "description": "Notre liste de films et séries",
+  "start_url": "/films",
+  "display": "standalone",
+  "background_color": "#0e0508",
+  "theme_color": "#c0392b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

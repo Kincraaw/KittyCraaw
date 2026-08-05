@@ -8,6 +8,7 @@ interface TmdbResult {
   title: string
   year: string | null
   poster_url: string | null
+  genres: string[]
 }
 
 interface Props {
@@ -55,6 +56,7 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
         type,
         poster_url: result.poster_url,
         tmdb_id: result.tmdb_id,
+        genres: result.genres ?? [],
       }),
     })
     const data = await res.json()
@@ -125,6 +127,9 @@ export default function AddModal({ type, onAdd, onClose }: Props) {
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-white truncate">{r.title}</p>
                       {r.year && <p className="text-xs text-white/40 mt-0.5">{r.year}</p>}
+                      {r.genres?.length > 0 && (
+                        <p className="text-xs text-white/30 mt-0.5 truncate">{r.genres.slice(0, 3).join(' · ')}</p>
+                      )}
                     </div>
                   </button>
                 </li>
