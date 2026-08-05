@@ -9,6 +9,7 @@ interface UserEntry {
   name: string
   rating: number | null
   watched: boolean
+  status: string
   note: string | null
 }
 
@@ -26,32 +27,48 @@ interface User {
 }
 
 type Tab = 'film' | 'serie'
+type Filter = 'all' | 'duo' | 'diff'
+
+const POSTER_COLORS = ['from-violet-900 to-purple-950', 'from-blue-900 to-indigo-950', 'from-teal-900 to-emerald-950', 'from-rose-900 to-pink-950']
 
 function Stars({ rating }: { rating: number | null }) {
   if (!rating) return <span className="text-white/20 text-xs">—</span>
+  return <span className="text-amber-400 text-xs tracking-tight">{'★'.repeat(rating)}{'☆'.repeat(5 - rating)}</span>
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg: Record<string, string> = {
+    watched: 'bg-violet-600/30 text-violet-300',
+    watching: 'bg-amber-600/30 text-amber-300',
+    unwatched: 'bg-white/8 text-white/40',
+  }
+  const labels: Record<string, string> = { watched: 'Vu', watching: 'En cours', unwatched: 'À voir' }
   return (
-    <span className="text-amber-400 text-sm">
-      {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
+    <span className={`text-xs px-2 py-0.5 rounded-full ${cfg[status] ?? cfg.unwatched}`}>
+      {labels[status] ?? 'À voir'}
     </span>
   )
 }
 
-function diff(a: number | null, b: number | null): string {
-  if (a === null || b === null) return ''
-  const d = a - b
-  if (d === 0) return '='
-  return d > 0 ? `+${d}` : `${d}`
+function UserSide({ entry, align }: { entry: UserEntry | undefined; align: 'left' | 'right' }) {
+  const isLeft = align === 'left'
+  if (!entry) {
+    return (
+      <div className={`flex-1 flex flex-col items-${isLeft ? 'end' : 'start'} justify-center gap-1 opacity-25 px-3`}>
+        <span className="text-xs text-white/40">—</span>
+      </div>
+    )
+  }
+  return (
+    <div className={`flex-1 flex flex-col ${isLeft ? 'items-end text-right' : 'items-start text-left'} justify-center gap-1.5 px-3`}>
+      <StatusBadge status={entry.status} />
+      <Stars rating={entry.rating} />
+      {entry.note && (
+        <p className="text-xs text-white/35 italic leading-tight line-clamp-2 max-w-[120px]">"{entry.note}"</p>
+      )}
+    </div>
+  )
 }
-
-function diffColor(a: number | null, b: number | null) {
-  if (a === null || b === null) return 'text-white/20'
-  const d = Math.abs(a - b)
-  if (d === 0) return 'text-emerald-400'
-  if (d === 1) return 'text-amber-400'
-  return 'text-red-400'
-}
-
-const POSTER_COLORS = ['from-violet-900 to-purple-950', 'from-blue-900 to-indigo-950', 'from-teal-900 to-emerald-950', 'from-rose-900 to-pink-950']
 
 export default function DuoPage() {
   const { data: session, status } = useSession()
@@ -60,7 +77,7 @@ export default function DuoPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('film')
-  const [filter, setFilter] = useState<'all' | 'duo' | 'diff'>('all')
+  const [filter, setFilter] = useState<Filter>('all')
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -77,11 +94,15 @@ export default function DuoPage() {
 
   useEffect(() => { if (session) fetchData() }, [session, fetchData])
 
+  // Identifier moi vs l'autre
+  const me = users.find(u => u.email === session?.user?.email)
+  const other = users.find(u => u.email !== session?.user?.email)
+
   const filtered = groups.filter(g => {
     const count = Object.keys(g.entries).length
     if (filter === 'duo') return count >= 2
     if (filter === 'diff') {
-      const ratings = Object.values(g.entries).map(e => e.rating).filter(Boolean)
+      const ratings = Object.values(g.entries).map(e => e.rating).filter((r): r is number => r !== null)
       return ratings.length === 2 && ratings[0] !== ratings[1]
     }
     return true
@@ -93,19 +114,19 @@ export default function DuoPage() {
   })
   const avgDiff = sharedWatched.length > 0
     ? (sharedWatched.reduce((sum, g) => {
-        const ratings = Object.values(g.entries).map(e => e.rating).filter((r): r is number => r !== null)
-        return sum + (ratings.length === 2 ? Math.abs(ratings[0] - ratings[1]) : 0)
+        const r = Object.values(g.entries).map(e => e.rating).filter((r): r is number => r !== null)
+        return sum + (r.length === 2 ? Math.abs(r[0] - r[1]) : 0)
       }, 0) / sharedWatched.length).toFixed(1)
     : '—'
 
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-7xl px-4 py-6">
+      <main className="mx-auto max-w-3xl px-4 py-6">
         <h1 className="text-lg font-semibold mb-5">🎭 Duo</h1>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-2 mb-5 max-w-lg">
+        <div className="grid grid-cols-3 gap-2 mb-5">
           <div className="rounded-xl bg-[var(--color-surface)] border border-white/8 p-4">
             <div className="text-2xl font-semibold">{sharedWatched.length}</div>
             <div className="text-xs text-white/50 mt-0.5">Vus ensemble</div>
@@ -125,95 +146,79 @@ export default function DuoPage() {
           </div>
         </div>
 
-        {/* Tabs Films / Séries */}
-        <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1 w-fit mb-4">
-          {(['film', 'serie'] as Tab[]).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`rounded px-4 py-1.5 text-sm transition-colors ${tab === t ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'}`}>
-              {t === 'film' ? '🎬 Films' : '📺 Séries'}
-            </button>
-          ))}
+        {/* Tabs + Filtres */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+            {(['film', 'serie'] as Tab[]).map(t => (
+              <button key={t} onClick={() => setTab(t)}
+                className={`rounded px-4 py-1.5 text-sm transition-colors ${tab === t ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'}`}>
+                {t === 'film' ? '🎬 Films' : '📺 Séries'}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+            {([['all', 'Tout'], ['duo', 'En commun'], ['diff', 'Désaccords']] as [Filter, string][]).map(([val, label]) => (
+              <button key={val} onClick={() => setFilter(val)}
+                className={`rounded px-3 py-1 text-xs transition-colors ${filter === val ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Filtres */}
-        <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1 w-fit mb-5">
-          {[['all', 'Tout'], ['duo', 'En commun'], ['diff', 'Désaccords']] .map(([val, label]) => (
-            <button key={val} onClick={() => setFilter(val as typeof filter)}
-              className={`rounded px-3 py-1 text-xs transition-colors ${filter === val ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'}`}>
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* En-tête colonnes */}
+        {!loading && filtered.length > 0 && me && other && (
+          <div className="flex items-center mb-2 px-1">
+            <div className="flex-1 text-right pr-3">
+              <span className="text-xs font-medium text-white/60">{me.name}</span>
+            </div>
+            <div className="w-20 shrink-0" />
+            <div className="flex-1 pl-3">
+              <span className="text-xs font-medium text-white/60">{other.name}</span>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="text-center py-16 text-white/30 text-sm">Chargement…</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-white/30 text-sm">Aucun résultat</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <div className="flex flex-col gap-2">
             {filtered.map(g => {
-              const userEntries = Object.entries(g.entries)
-              const isDuo = userEntries.length >= 2
-              const ratings = userEntries.map(([, e]) => e.rating)
+              const myEntry = me ? g.entries[me.email] : undefined
+              const otherEntry = other ? g.entries[other.email] : undefined
               const posterColor = POSTER_COLORS[g.title.length % POSTER_COLORS.length]
+              const isDuo = !!myEntry && !!otherEntry
+              const bothRated = myEntry?.rating != null && otherEntry?.rating != null
+              const agree = bothRated && myEntry!.rating === otherEntry!.rating
 
               return (
-                <div key={g.key} className="rounded-xl border border-white/8 bg-[var(--color-surface)] overflow-hidden">
-                  <div className="flex gap-4 p-4">
-                    {/* Poster */}
-                    <div className={`w-12 h-16 rounded-lg overflow-hidden shrink-0 bg-gradient-to-br ${posterColor}`}>
+                <div key={g.key} className={`flex items-center rounded-xl border bg-[var(--color-surface)] overflow-hidden transition-all ${isDuo ? 'border-white/12' : 'border-white/6 opacity-75'}`}>
+                  {/* Côté gauche — moi */}
+                  <UserSide entry={myEntry} align="left" />
+
+                  {/* Centre — film */}
+                  <div className="w-20 shrink-0 flex flex-col items-center py-3 gap-2">
+                    <div className={`w-12 h-16 rounded-lg overflow-hidden bg-gradient-to-br ${posterColor} relative`}>
                       {g.poster_url
                         ? <img src={g.poster_url} alt={g.title} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full flex items-center justify-center text-white/20 font-bold">{g.title[0]}</div>
+                        : <div className="w-full h-full flex items-center justify-center text-white/20 font-bold text-sm">{g.title[0]}</div>
                       }
-                    </div>
-
-                    {/* Infos */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-medium text-sm text-white leading-tight">{g.title}</p>
-                          {g.year && <p className="text-xs text-white/40">{g.year}</p>}
-                        </div>
-                        {isDuo && ratings[0] !== null && ratings[1] !== null && (
-                          <span className={`text-xs font-semibold shrink-0 ${diffColor(ratings[0], ratings[1])}`}>
-                            {diff(ratings[0], ratings[1])}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Comparaison */}
-                      <div className="mt-3 flex flex-col gap-1.5">
-                        {users.map(u => {
-                          const e = g.entries[u.email]
-                          return (
-                            <div key={u.email} className="flex items-center gap-2">
-                              <span className="text-xs text-white/50 w-14 shrink-0 truncate">{u.name}</span>
-                              {e ? (
-                                e.watched
-                                  ? <Stars rating={e.rating} />
-                                  : <span className="text-xs text-white/30 italic">À voir</span>
-                              ) : (
-                                <span className="text-xs text-white/20">—</span>
-                              )}
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {/* Notes */}
-                      {userEntries.some(([, e]) => e.note) && (
-                        <div className="mt-3 flex flex-col gap-1.5 border-t border-white/8 pt-3">
-                          {userEntries.filter(([, e]) => e.note).map(([email, e]) => (
-                            <div key={email}>
-                              <span className="text-xs font-medium text-white/60">{e.name} : </span>
-                              <span className="text-xs text-white/40 italic">"{e.note}"</span>
-                            </div>
-                          ))}
+                      {isDuo && (
+                        <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border border-[var(--color-surface)] flex items-center justify-center text-xs ${agree ? 'bg-emerald-500' : bothRated ? 'bg-red-500' : 'bg-white/20'}`}>
+                          {agree ? '=' : bothRated ? '!' : ''}
                         </div>
                       )}
                     </div>
+                    <div className="text-center px-1">
+                      <p className="text-xs font-medium text-white leading-tight line-clamp-2">{g.title}</p>
+                      {g.year && <p className="text-xs text-white/30 mt-0.5">{g.year}</p>}
+                    </div>
                   </div>
+
+                  {/* Côté droit — l'autre */}
+                  <UserSide entry={otherEntry} align="right" />
                 </div>
               )
             })}

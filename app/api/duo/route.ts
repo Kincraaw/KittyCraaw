@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   const nameMap = Object.fromEntries((users ?? []).map(u => [u.email, u.name]))
 
   // Grouper par tmdb_id ou titre
-  const groups = new Map<string, { key: string; title: string; year: number | null; poster_url: string | null; entries: Record<string, { name: string; rating: number | null; watched: boolean; note: string | null }> }>()
+  const groups = new Map<string, { key: string; title: string; year: number | null; poster_url: string | null; entries: Record<string, { name: string; rating: number | null; watched: boolean; status: string; note: string | null }> }>()
 
   for (const entry of entries ?? []) {
     const key = entry.tmdb_id ? `tmdb_${entry.tmdb_id}` : `title_${entry.title.toLowerCase()}`
@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
       name: nameMap[entry.user_email] ?? entry.user_email,
       rating: entry.rating,
       watched: entry.watched,
+      status: entry.status ?? (entry.watched ? 'watched' : 'unwatched'),
       note: entry.note,
     }
   }
