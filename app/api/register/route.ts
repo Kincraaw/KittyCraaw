@@ -16,9 +16,6 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = getSupabase()
-  console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('Allowed emails:', ALLOWED_EMAILS)
-  console.log('Email reçu:', email.toLowerCase())
 
   const { data: existing } = await supabase
     .from('users')
