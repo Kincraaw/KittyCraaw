@@ -8,6 +8,7 @@ export function getSupabase() {
 }
 
 export type EntryType = 'film' | 'serie'
+export type EntryStatus = 'unwatched' | 'watching' | 'watched'
 
 export interface Entry {
   id: string
@@ -16,6 +17,7 @@ export interface Entry {
   title: string
   year: number | null
   watched: boolean
+  status: EntryStatus
   rating: number | null
   poster_url: string | null
   tmdb_id: number | null

@@ -34,13 +34,15 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
   const [loading, setLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
 
-  async function toggleWatched() {
+  async function cycleStatus() {
     setLoading(true)
-    const newWatched = !entry.watched
+    const cycle: Record<string, string> = { unwatched: 'watching', watching: 'watched', watched: 'unwatched' }
+    const newStatus = cycle[entry.status ?? 'unwatched']
+    const newWatched = newStatus === 'watched'
     const res = await fetch(`/api/entries/${entry.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ watched: newWatched, rating: newWatched ? entry.rating : null }),
+      body: JSON.stringify({ status: newStatus, watched: newWatched, rating: newWatched ? entry.rating : null }),
     })
     const data = await res.json()
     onUpdate(data)
@@ -48,7 +50,7 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
   }
 
   async function setRating(rating: number) {
-    if (!entry.watched) return
+    if ((entry.status ?? (entry.watched ? 'watched' : 'unwatched')) !== 'watched') return
     const res = await fetch(`/api/entries/${entry.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -90,23 +92,27 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
         <p className="font-medium text-sm text-white truncate leading-tight">{entry.title}</p>
         {entry.year && <p className="text-xs text-white/40 mt-0.5">{entry.year}</p>}
 
-        <div className="mt-3 flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          <button
-            onClick={toggleWatched}
-            disabled={loading}
-            className={`w-5 h-5 rounded flex items-center justify-center border transition-all shrink-0 ${
-              entry.watched
-                ? 'bg-violet-500 border-violet-500 text-white'
-                : 'border-white/20 hover:border-violet-400'
-            }`}
-            aria-label={entry.watched ? 'Marquer comme non vu' : 'Marquer comme vu'}
-          >
-            {entry.watched && <span className="text-xs leading-none">✓</span>}
-          </button>
-          <span className="text-xs text-white/50">{entry.watched ? 'Vu' : 'À voir'}</span>
+        <div className="mt-3" onClick={e => e.stopPropagation()}>
+          {(() => {
+            const status = entry.status ?? (entry.watched ? 'watched' : 'unwatched')
+            const cfg = {
+              unwatched: { label: 'À voir', cls: 'bg-white/8 text-white/50 hover:bg-white/12' },
+              watching:  { label: 'En cours', cls: 'bg-amber-600/30 text-amber-300 hover:bg-amber-600/40' },
+              watched:   { label: 'Vu ✓', cls: 'bg-violet-600/30 text-violet-300 hover:bg-violet-600/40' },
+            }[status]
+            return (
+              <button
+                onClick={cycleStatus}
+                disabled={loading}
+                className={`w-full rounded px-2 py-1 text-xs font-medium transition-all ${cfg.cls}`}
+              >
+                {cfg.label}
+              </button>
+            )
+          })()}
         </div>
 
-        <div className={`mt-2 transition-opacity ${entry.watched ? 'opacity-100' : 'opacity-30 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
+        <div className={`mt-2 transition-opacity ${(entry.status ?? (entry.watched ? 'watched' : 'unwatched')) === 'watched' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`} onClick={e => e.stopPropagation()}>
           <StarRating value={entry.rating} onChange={setRating} readonly={!entry.watched} />
         </div>
       </div>

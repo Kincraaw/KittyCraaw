@@ -36,7 +36,7 @@ export default function MembresPage() {
   return (
     <>
       <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="mx-auto max-w-7xl px-4 py-8">
         <h1 className="text-xl font-semibold mb-6">👥 Membres</h1>
         <div className="flex flex-col gap-3 max-w-sm">
           {users.map((user, i) => (

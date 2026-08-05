@@ -11,6 +11,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json()
   const updates: Record<string, unknown> = {}
   if ('watched' in body) updates.watched = body.watched
+  if ('status' in body) updates.status = body.status
   if ('rating' in body) updates.rating = body.rating
   if ('note' in body) updates.note = body.note
 

@@ -8,7 +8,8 @@ import EntryCard from './EntryCard'
 import AddModal from './AddModal'
 import type { Entry, EntryType } from '@/lib/supabase'
 
-type Filter = 'all' | 'watched' | 'unwatched'
+type Filter = 'all' | 'watched' | 'watching' | 'unwatched'
+type Sort = 'date' | 'title' | 'rating' | 'year'
 
 export default function EntriesPage({ type }: { type: EntryType }) {
   const { data: session, status } = useSession()
@@ -18,6 +19,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
   const [showModal, setShowModal] = useState(false)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
+  const [sort, setSort] = useState<Sort>('date')
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -37,13 +39,22 @@ export default function EntriesPage({ type }: { type: EntryType }) {
   function handleUpdate(updated: Entry) { setEntries(prev => prev.map(e => e.id === updated.id ? updated : e)) }
   function handleDelete(id: string) { setEntries(prev => prev.filter(e => e.id !== id)) }
 
-  const filtered = entries.filter(e => {
-    const matchSearch = e.title.toLowerCase().includes(search.toLowerCase())
-    const matchFilter = filter === 'all' || (filter === 'watched' ? e.watched : !e.watched)
-    return matchSearch && matchFilter
-  })
+  const filtered = entries
+    .filter(e => {
+      const matchSearch = e.title.toLowerCase().includes(search.toLowerCase())
+      const status = e.status ?? (e.watched ? 'watched' : 'unwatched')
+      const matchFilter = filter === 'all' || status === filter
+      return matchSearch && matchFilter
+    })
+    .sort((a, b) => {
+      if (sort === 'title') return a.title.localeCompare(b.title)
+      if (sort === 'rating') return (b.rating ?? -1) - (a.rating ?? -1)
+      if (sort === 'year') return (b.year ?? 0) - (a.year ?? 0)
+      return 0 // 'date' = ordre d'ajout (déjà trié par l'API)
+    })
 
-  const watchedCount = entries.filter(e => e.watched).length
+  const watchedCount = entries.filter(e => (e.status ?? (e.watched ? 'watched' : 'unwatched')) === 'watched').length
+  const watchingCount = entries.filter(e => (e.status ?? '') === 'watching').length
   const ratedEntries = entries.filter(e => e.rating !== null)
   const avgRating = ratedEntries.length
     ? (ratedEntries.reduce((sum, e) => sum + (e.rating ?? 0), 0) / ratedEntries.length).toFixed(1)
@@ -63,7 +74,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
     <>
       <Navbar />
 
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <main className="mx-auto max-w-7xl px-4 py-6">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-lg font-semibold">{type === 'film' ? '🎬 Films' : '📺 Séries'}</h1>
           <button
@@ -74,7 +85,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-5">
+        <div className="grid grid-cols-3 gap-2 mb-5 max-w-lg">
           <div className="rounded-xl bg-[var(--color-surface)] border border-white/8 p-4">
             <div className="text-2xl font-semibold">{watchedCount}</div>
             <div className="text-xs text-white/50 mt-0.5">{label.charAt(0).toUpperCase() + label.slice(1)} vus</div>
@@ -84,8 +95,8 @@ export default function EntriesPage({ type }: { type: EntryType }) {
             <div className="text-xs text-white/50 mt-0.5">Note moyenne</div>
           </div>
           <div className="rounded-xl bg-[var(--color-surface)] border border-white/8 p-4">
-            <div className="text-2xl font-semibold">{entries.length - watchedCount}</div>
-            <div className="text-xs text-white/50 mt-0.5">À voir</div>
+            <div className="text-2xl font-semibold">{watchingCount > 0 ? watchingCount : entries.length - watchedCount}</div>
+            <div className="text-xs text-white/50 mt-0.5">{watchingCount > 0 ? 'En cours' : 'À voir'}</div>
           </div>
         </div>
 
@@ -93,21 +104,26 @@ export default function EntriesPage({ type }: { type: EntryType }) {
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={`Rechercher…`}
+            placeholder="Rechercher…"
             className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-white/30 outline-none focus:border-violet-500 transition-colors flex-1"
           />
-          <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
-            {(['all', 'watched', 'unwatched'] as Filter[]).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`rounded px-3 py-1 text-xs transition-colors ${
-                  filter === f ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'
-                }`}
-              >
-                {f === 'all' ? 'Tout' : f === 'watched' ? 'Vus' : 'À voir'}
-              </button>
-            ))}
+          <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+              {([['all', 'Tout'], ['watched', 'Vus'], ['watching', 'En cours'], ['unwatched', 'À voir']] as [Filter, string][]).map(([f, lbl]) => (
+                <button key={f} onClick={() => setFilter(f)}
+                  className={`rounded px-3 py-1 text-xs transition-colors ${filter === f ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'}`}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+              {([['date', '🕐 Date'], ['title', 'A→Z'], ['rating', '★ Note'], ['year', '📅 Année']] as [Sort, string][]).map(([s, label]) => (
+                <button key={s} onClick={() => setSort(s)}
+                  className={`rounded px-3 py-1 text-xs transition-colors ${sort === s ? 'bg-violet-600 text-white' : 'text-white/50 hover:text-white'}`}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -131,7 +147,7 @@ export default function EntriesPage({ type }: { type: EntryType }) {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
             {filtered.map(entry => (
               <EntryCard
                 key={entry.id}
