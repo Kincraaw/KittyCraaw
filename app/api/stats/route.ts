@@ -10,7 +10,7 @@ export async function GET() {
   const supabase = getSupabase()
   const { data: entries, error } = await supabase
     .from('entries')
-    .select('type, status, watched, rating, created_at')
+    .select('type, status, watched, rating, created_at, watched_at')
     .eq('user_email', session.user.email)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -38,7 +38,8 @@ export async function GET() {
 
   const byMonth: Record<string, number> = {}
   entries.forEach(e => {
-    const month = e.created_at.slice(0, 7)
+    const date = e.watched_at ?? e.created_at
+    const month = date.slice(0, 7)
     byMonth[month] = (byMonth[month] ?? 0) + 1
   })
   const sortedMonths = Object.entries(byMonth)

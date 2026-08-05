@@ -11,7 +11,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const body = await req.json()
   const updates: Record<string, unknown> = {}
   if ('watched' in body) updates.watched = body.watched
-  if ('status' in body) updates.status = body.status
+  if ('status' in body) {
+    updates.status = body.status
+    if (body.status === 'watched' && !body.keep_watched_at) updates.watched_at = new Date().toISOString()
+    if (body.status !== 'watched') updates.watched_at = null
+  }
   if ('rating' in body) updates.rating = body.rating
   if ('note' in body) updates.note = body.note
   if ('locked' in body) updates.locked = body.locked

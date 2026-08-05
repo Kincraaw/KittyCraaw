@@ -41,7 +41,7 @@ body {
 
 [data-theme="image"] body,
 [data-theme="image"] #theme-bg {
-  background-image: url('/bg.jpg');
+  background-image: url('/bg.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;

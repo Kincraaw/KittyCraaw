@@ -88,10 +88,15 @@ export default function EntryModal({ entry, onUpdate, onClose }: Props) {
             <div className="mt-3">
               <StarRating value={entry.rating} readonly />
             </div>
-            <div className="mt-2">
+            <div className="mt-2 flex flex-wrap gap-1.5 items-center">
               <span className={`text-xs px-2 py-1 rounded-full ${entry.watched ? 'bg-violet-500/20 text-violet-300' : 'bg-white/10 text-white/40'}`}>
                 {entry.watched ? '✓ Vu' : 'À voir'}
               </span>
+              {entry.watched_at && (
+                <span className="text-xs text-white/30">
+                  {new Date(entry.watched_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              )}
             </div>
           </div>
           <div className="flex flex-col items-end gap-2 shrink-0">

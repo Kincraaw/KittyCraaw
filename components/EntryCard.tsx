@@ -119,6 +119,11 @@ export default function EntryCard({ entry, onUpdate, onDelete }: Props) {
         )}
         <p className="font-medium text-sm text-white truncate leading-tight">{entry.title}</p>
         {entry.year && <p className="text-xs text-white/40 mt-0.5">{entry.year}</p>}
+        {entry.watched_at && (
+          <p className="text-xs text-white/30 mt-0.5">
+            Vu le {new Date(entry.watched_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </p>
+        )}
 
         <div className="mt-3" onClick={e => e.stopPropagation()}>
           {(() => {

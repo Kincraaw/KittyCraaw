@@ -22,6 +22,7 @@ export interface Entry {
   poster_url: string | null
   tmdb_id: number | null
   genres: string[]
+  watched_at: string | null
   note: string | null
   suggested_by: string | null
   locked: boolean
