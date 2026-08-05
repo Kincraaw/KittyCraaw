@@ -39,12 +39,28 @@ body {
   min-height: 100vh;
 }
 
-[data-theme="image"] body,
-[data-theme="image"] #theme-bg {
-  background-image: url('/bg.png');
-  background-size: cover;
+[data-theme="image"] body {
+  background-color: #0e0508;
+}
+
+[data-theme="image"] body::before {
+  content: '';
+  position: fixed;
+  top: 56px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: var(--bg-image-url, none);
+  background-size: 100% 100%;
   background-position: center;
-  background-attachment: fixed;
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+
+[data-theme="image"] body > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Remplace violet par bordeaux sur les deux thèmes */

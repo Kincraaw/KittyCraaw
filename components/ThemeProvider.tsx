@@ -19,6 +19,20 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     apply(saved ?? 'bordeaux')
   }, [])
 
+  useEffect(() => {
+    if (theme !== 'image') {
+      document.documentElement.style.removeProperty('--bg-image-url')
+      return
+    }
+    fetch('/api/bg')
+      .then(r => r.ok ? r.blob() : null)
+      .then(blob => {
+        if (!blob) return
+        const url = URL.createObjectURL(blob)
+        document.documentElement.style.setProperty('--bg-image-url', `url(${url})`)
+      })
+  }, [theme])
+
   function apply(t: Theme) {
     setTheme(t)
     localStorage.setItem('theme', t)
@@ -31,18 +45,6 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
 
   return (
     <ThemeContext.Provider value={{ theme, toggle }}>
-      {theme === 'image' && (
-        <div
-          id="theme-bg"
-          className="fixed inset-0 -z-10"
-          style={{
-            backgroundImage: "url('/bg.jpg')",
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-          }}
-        />
-      )}
       {children}
     </ThemeContext.Provider>
   )
